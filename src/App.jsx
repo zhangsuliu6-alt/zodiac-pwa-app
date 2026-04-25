@@ -439,63 +439,76 @@ export default function ZodiacPredictionApp() {
   function handleImage(file) { if (!file) return; setStatus("图片已接收；当前预览环境OCR不稳定，建议把图发给我转JSON，或用系统文字识别后粘贴文本。"); }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <header className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-5">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#1e293b_0,#020617_42%,#020617_100%)] text-slate-100 p-3 md:p-8 pb-24">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-slate-800 px-3 py-1 text-sm text-slate-300 mb-3">🚀 打开即用 · 最新30期</div>
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight">平特一肖 + 杀一头 + 杀4肖 + 波色 + 大小单双</h1>
-            <p className="mt-3 text-slate-400 max-w-3xl">打开自动同步最新30期，自动生成近10期已结算预测记录，并基于历史滚动训练权重。杀一头取特码号码头数评分最低的一头，杀4肖取特码生肖评分最低的四个，分别作为本期排除参考；开奖随机性强，不保证准确率一定越来越高。</p>
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-800/80 px-3 py-1 text-xs text-slate-300 mb-2">🚀 打开即用 · 最新30期</div>
+            <h1 className="text-2xl md:text-5xl font-bold tracking-tight leading-tight">平特一肖预测</h1>
+            <p className="mt-2 text-sm md:text-base text-slate-400 max-w-3xl">自动同步最新30期，预测平特一肖、杀一头、杀4肖、波色、大小、单双。</p>
           </div>
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="rounded-2xl bg-slate-900 border border-slate-800 p-4"><div className="text-2xl font-bold">{records.length}</div><div className="text-xs text-slate-400 mt-1">累计期数</div></div>
-            <div className="rounded-2xl bg-slate-900 border border-slate-800 p-4"><div className="text-2xl font-bold">{recent30.length}</div><div className="text-xs text-slate-400 mt-1">固定最新30期</div></div>
-            <div className="rounded-2xl bg-slate-900 border border-slate-800 p-4"><div className="text-2xl font-bold">{autoRefresh ? "开" : "关"}</div><div className="text-xs text-slate-400 mt-1">自动更新</div></div>
+          <div className="grid grid-cols-3 gap-2 md:gap-3 text-center">
+            <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-3 md:p-4"><div className="text-xl md:text-2xl font-bold">{records.length}</div><div className="text-[11px] md:text-xs text-slate-400 mt-1">累计期数</div></div>
+            <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-3 md:p-4"><div className="text-xl md:text-2xl font-bold">{recent30.length}</div><div className="text-[11px] md:text-xs text-slate-400 mt-1">最新30期</div></div>
+            <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-3 md:p-4"><div className="text-xl md:text-2xl font-bold">{autoRefresh ? "开" : "关"}</div><div className="text-[11px] md:text-xs text-slate-400 mt-1">自动更新</div></div>
           </div>
         </header>
 
-        <main className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <section className="lg:col-span-2 space-y-6">
-            <div className="rounded-3xl bg-slate-900 border border-slate-800 p-5 shadow-2xl space-y-4">
-              <h2 className="text-xl font-semibold">数据同步</h2>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImage(e.target.files && e.target.files[0])} />
-              <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => syncLatest30(false)} className="rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-3 font-medium transition">🔄 同步最新30期</button>
-                <button onClick={resetLocal} className="rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-3 font-medium transition">♻️ 重置本地</button>
-                <button onClick={() => fileRef.current && fileRef.current.click()} className="rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-3 font-medium transition">📷 备用上传</button>
-                <button onClick={importRows} className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-3 font-medium transition">导入文本</button>
+        <main className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
+          <section className="lg:col-span-2 space-y-4 md:space-y-6 order-2 lg:order-1">
+            <div className="rounded-[1.75rem] bg-slate-900/85 border border-slate-800 p-4 md:p-5 shadow-2xl backdrop-blur space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-lg md:text-xl font-semibold">数据同步</h2>
+                <span className="text-xs text-slate-500">{lastCheck || "初始化"}</span>
               </div>
-              <label className="flex items-center justify-between rounded-2xl bg-slate-950 border border-slate-800 p-4">
-                <div><div className="text-sm font-medium">自动更新最新30期</div><div className="text-xs text-slate-500 mt-1">每30秒检查一次；打开页面也会自动同步。</div><div className="text-xs text-slate-500 mt-1">最后检查：{lastCheck || "正在初始化"}</div></div>
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImage(e.target.files && e.target.files[0])} />
+              <div className="grid grid-cols-2 gap-2 md:gap-3">
+                <button onClick={() => syncLatest30(false)} className="rounded-2xl bg-indigo-600 hover:bg-indigo-500 px-3 py-3 text-sm font-medium transition">🔄 同步30期</button>
+                <button onClick={resetLocal} className="rounded-2xl bg-slate-800 hover:bg-slate-700 px-3 py-3 text-sm font-medium transition">♻️ 重置</button>
+                <button onClick={() => fileRef.current && fileRef.current.click()} className="rounded-2xl bg-slate-800 hover:bg-slate-700 px-3 py-3 text-sm font-medium transition">📷 上传</button>
+                <button onClick={importRows} className="rounded-2xl bg-emerald-600 hover:bg-emerald-500 px-3 py-3 text-sm font-medium transition">导入文本</button>
+              </div>
+              <label className="flex items-center justify-between rounded-2xl bg-slate-950/90 border border-slate-800 p-4">
+                <div><div className="text-sm font-medium">自动更新</div><div className="text-xs text-slate-500 mt-1">页面打开时每30秒检查一次</div></div>
                 <input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} className="h-5 w-5" />
               </label>
-              <textarea value={importText} onChange={(e) => setImportText(e.target.value)} placeholder="可粘贴JSON，或文本：20260424378 46 鸡 45 狗 01 马 32 猪 42 牛 07 鼠 30 牛" className="w-full h-40 rounded-2xl bg-slate-950 border border-slate-800 p-4 outline-none focus:ring-2 focus:ring-slate-500 resize-none text-slate-100 placeholder:text-slate-600" />
-              <div className="rounded-2xl bg-slate-950 border border-slate-800 p-3 text-sm text-slate-400">{status}</div>
+              <textarea value={importText} onChange={(e) => setImportText(e.target.value)} placeholder="粘贴JSON或开奖记录文本" className="w-full h-28 md:h-40 rounded-2xl bg-slate-950 border border-slate-800 p-4 outline-none focus:ring-2 focus:ring-slate-500 resize-none text-sm text-slate-100 placeholder:text-slate-600" />
+              <div className="rounded-2xl bg-slate-950/90 border border-slate-800 p-3 text-xs md:text-sm text-slate-400">{status}</div>
             </div>
 
-            <div className="rounded-3xl bg-slate-900 border border-slate-800 p-5 shadow-2xl"><h2 className="text-xl font-semibold mb-4">最新使用数据</h2><div className="space-y-3 max-h-96 overflow-auto">{recent30.slice(0, 12).map((row) => <div key={row.expect} className="rounded-2xl bg-slate-950 border border-slate-800 p-3 text-sm"><div className="flex justify-between gap-2"><span className="font-semibold">第 {row.expect} 期</span><span className="text-slate-500">{row.openTime}</span></div><div className="mt-2 text-slate-300">{row.zodiacList.join(" ")}</div><div className="mt-1 text-slate-600">{row.codeList.join(" ")}</div></div>)}</div></div>
+            <div className="rounded-[1.75rem] bg-slate-900/85 border border-slate-800 p-4 md:p-5 shadow-2xl backdrop-blur">
+              <h2 className="text-lg md:text-xl font-semibold mb-4">最新使用数据</h2>
+              <div className="space-y-2 max-h-80 md:max-h-96 overflow-auto">
+                {recent30.slice(0, 10).map((row) => <div key={row.expect} className="rounded-2xl bg-slate-950/90 border border-slate-800 p-3 text-sm"><div className="flex justify-between gap-2"><span className="font-semibold">第 {row.expect} 期</span><span className="text-slate-500 text-xs">{row.openTime}</span></div><div className="mt-2 text-slate-300 text-xs md:text-sm">{row.zodiacList.join(" ")}</div><div className="mt-1 text-slate-600 text-xs">{row.codeList.join(" ")}</div></div>)}
+              </div>
+            </div>
           </section>
 
-          <section className="lg:col-span-3 space-y-6">
-            <div className="rounded-3xl bg-slate-900 border border-slate-800 p-5 shadow-2xl">
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-5"><h2 className="text-2xl font-bold">🔥 下一期预测</h2><div className="flex gap-2"><Badge>预测期号：{prediction.expect || "-"}</Badge><Badge>基于：{prediction.basedOn || "-"}</Badge></div></div>
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-5">
-                <div className="rounded-3xl bg-slate-950 border border-slate-800 p-6 text-center"><div className="text-sm text-slate-500">平特一肖</div><div className="text-6xl font-bold mt-3">{ping.pick.label}</div><div className="mt-3 text-slate-300">信心：{ping.confidence.level}｜分差：{ping.confidence.edge}</div></div>
-                <div className="rounded-3xl bg-slate-950 border border-slate-800 p-6 text-center"><div className="text-sm text-slate-500">杀一头</div><div className="mt-3 flex justify-center gap-2 flex-wrap"><span className="rounded-2xl bg-orange-950/60 border border-orange-800 px-4 py-3 text-3xl font-bold text-orange-100">{prediction.killHead}</span></div><div className="mt-3 text-slate-300">特码头数排除参考</div></div>
-                <div className="rounded-3xl bg-slate-950 border border-slate-800 p-6 text-center"><div className="text-sm text-slate-500">杀4肖</div><div className="mt-3 flex justify-center gap-2 flex-wrap">{prediction.killZodiacs.map((z) => <span key={z} className="rounded-2xl bg-rose-950/60 border border-rose-800 px-4 py-3 text-3xl font-bold text-rose-100">{z}</span>)}</div><div className="mt-3 text-slate-300">特码生肖最低分排除参考</div></div>
-                <div className="rounded-3xl bg-slate-950 border border-slate-800 p-6 text-center"><div className="text-sm text-slate-500">波色选2</div><div className="mt-3 flex justify-center gap-2 flex-wrap">{color.list.slice(0, 2).map((item) => <span key={item.label} className="rounded-2xl bg-slate-800 border border-slate-700 px-3 py-2 text-2xl font-bold">{item.label}</span>)}</div><div className="mt-3 text-slate-300">信心：{color.confidence.level}</div></div>
-                <div className="rounded-3xl bg-slate-950 border border-slate-800 p-6 text-center"><div className="text-sm text-slate-500">大小</div><div className="text-6xl font-bold mt-3">{size.pick.label}</div><div className="mt-3 text-slate-300">信心：{size.confidence.level}</div></div>
-                <div className="rounded-3xl bg-slate-950 border border-slate-800 p-6 text-center"><div className="text-sm text-slate-500">单双</div><div className="text-6xl font-bold mt-3">{parity.pick.label}</div><div className="mt-3 text-slate-300">信心：{parity.confidence.level}</div></div>
+          <section className="lg:col-span-3 space-y-4 md:space-y-6 order-1 lg:order-2">
+            <div className="rounded-[1.75rem] bg-slate-900/85 border border-slate-800 p-4 md:p-5 shadow-2xl backdrop-blur">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <h2 className="text-xl md:text-2xl font-bold">🔥 下一期</h2>
+                <div className="flex gap-2 overflow-x-auto whitespace-nowrap"><Badge>预测 {prediction.expect || "-"}</Badge><Badge>基于 {prediction.basedOn || "-"}</Badge></div>
               </div>
-              {ping.confidence.level === "低" || size.confidence.level === "低" || parity.confidence.level === "低" ? <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 text-sm text-amber-200 mb-5">有项目处于低信心：分差太小，说明模型没有明显倾向，只能轻参考。</div> : null}
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
+                <div className="col-span-2 rounded-[1.5rem] bg-gradient-to-br from-indigo-500/25 to-slate-950 border border-indigo-500/30 p-5 text-center"><div className="text-xs text-indigo-200">平特一肖</div><div className="text-7xl font-black mt-2 leading-none">{ping.pick.label}</div><div className="mt-3 text-xs text-slate-300">信心：{ping.confidence.level}｜分差：{ping.confidence.edge}</div></div>
+                <div className="rounded-[1.5rem] bg-slate-950/90 border border-orange-900/60 p-4 text-center"><div className="text-xs text-slate-500">杀一头</div><div className="mt-3 text-4xl font-black text-orange-100">{prediction.killHead}</div><div className="mt-2 text-[11px] text-slate-500">排除参考</div></div>
+                <div className="rounded-[1.5rem] bg-slate-950/90 border border-rose-900/60 p-4 text-center"><div className="text-xs text-slate-500">杀4肖</div><div className="mt-3 flex justify-center gap-1.5 flex-wrap">{prediction.killZodiacs.map((z) => <span key={z} className="rounded-xl bg-rose-950/70 border border-rose-800 px-2.5 py-1.5 text-xl font-bold text-rose-100">{z}</span>)}</div></div>
+                <div className="rounded-[1.5rem] bg-slate-950/90 border border-slate-800 p-4 text-center"><div className="text-xs text-slate-500">波色选2</div><div className="mt-3 flex justify-center gap-1.5 flex-wrap">{color.list.slice(0, 2).map((item) => <span key={item.label} className="rounded-xl bg-slate-800 border border-slate-700 px-2.5 py-1.5 text-lg font-bold">{item.label}</span>)}</div><div className="mt-2 text-[11px] text-slate-500">{color.confidence.level}信心</div></div>
+                <div className="grid grid-cols-2 gap-3 col-span-2 md:col-span-1">
+                  <div className="rounded-[1.5rem] bg-slate-950/90 border border-slate-800 p-4 text-center"><div className="text-xs text-slate-500">大小</div><div className="text-4xl font-black mt-2">{size.pick.label}</div></div>
+                  <div className="rounded-[1.5rem] bg-slate-950/90 border border-slate-800 p-4 text-center"><div className="text-xs text-slate-500">单双</div><div className="text-4xl font-black mt-2">{parity.pick.label}</div></div>
+                </div>
+              </div>
+              {ping.confidence.level === "低" || size.confidence.level === "低" || parity.confidence.level === "低" ? <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs md:text-sm text-amber-200">有项目处于低信心，只能轻参考。</div> : null}
             </div>
 
-            <div className="rounded-3xl bg-slate-900 border border-slate-800 p-5 shadow-2xl">
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-4"><h2 className="text-2xl font-bold">📋 近10期已结算预测记录</h2><div className="flex flex-wrap gap-2"><Badge>肖 {stats.pingRate}%</Badge><Badge>杀头 {stats.killHeadRate}%</Badge><Badge>杀4肖 {stats.killRate}%</Badge><Badge>波 {stats.colorRate}%</Badge><Badge>大小 {stats.sizeRate}%</Badge><Badge>单双 {stats.parityRate}%</Badge></div></div>
-              {history.length === 0 ? <div className="text-sm text-slate-500">数据不足，暂时无法生成近10期记录。</div> : <div className="space-y-3 max-h-96 overflow-auto">{history.map((item) => <div key={item.expect} className="rounded-2xl bg-slate-950 border border-slate-800 p-3 text-sm"><div className="flex justify-between gap-2 mb-2"><span className="font-semibold">第 {item.expect} 期</span><span className="text-slate-500">基于 {item.basedOn}</span></div><div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs"><div>一肖：{item.ping} {item.pingHit ? "✅" : "❌"}</div><div>杀一头：{item.killHead} {item.killHeadHit ? "✅" : "❌"}</div><div>杀4肖：{(item.killZodiacs || []).join("/")} {item.killHit ? "✅" : "❌"}</div><div>波色：{(item.colors || []).join("/")} {item.colorHit ? "✅" : "❌"}</div><div>大小：{item.size} {item.sizeHit ? "✅" : "❌"}</div><div>单双：{item.parity} {item.parityHit ? "✅" : "❌"}</div></div><div className="mt-2 text-xs text-slate-500">实际特码：{item.actualNum} {item.actualSpecialZodiac} {item.actualColor} {item.actualSize}{item.actualParity}；全号生肖：{(item.actualZodiacs || []).join("/")}</div></div>)}</div>}
+            <div className="rounded-[1.75rem] bg-slate-900/85 border border-slate-800 p-4 md:p-5 shadow-2xl backdrop-blur">
+              <div className="flex flex-col gap-3 mb-4"><h2 className="text-xl md:text-2xl font-bold">📋 近10期记录</h2><div className="flex gap-2 overflow-x-auto pb-1 whitespace-nowrap"><Badge>肖 {stats.pingRate}%</Badge><Badge>杀头 {stats.killHeadRate}%</Badge><Badge>杀4肖 {stats.killRate}%</Badge><Badge>波 {stats.colorRate}%</Badge><Badge>大小 {stats.sizeRate}%</Badge><Badge>单双 {stats.parityRate}%</Badge></div></div>
+              {history.length === 0 ? <div className="text-sm text-slate-500">数据不足，暂时无法生成近10期记录。</div> : <div className="space-y-3 max-h-96 overflow-auto">{history.map((item) => <div key={item.expect} className="rounded-2xl bg-slate-950/90 border border-slate-800 p-3 text-sm"><div className="flex justify-between gap-2 mb-2"><span className="font-semibold">第 {item.expect} 期</span><span className="text-slate-500 text-xs">基于 {item.basedOn}</span></div><div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-6"><div>一肖：{item.ping} {item.pingHit ? "✅" : "❌"}</div><div>杀一头：{item.killHead} {item.killHeadHit ? "✅" : "❌"}</div><div>杀4肖：{(item.killZodiacs || []).join("/")} {item.killHit ? "✅" : "❌"}</div><div>波色：{(item.colors || []).join("/")} {item.colorHit ? "✅" : "❌"}</div><div>大小：{item.size} {item.sizeHit ? "✅" : "❌"}</div><div>单双：{item.parity} {item.parityHit ? "✅" : "❌"}</div></div><div className="mt-2 text-xs text-slate-500">实际特码：{item.actualNum} {item.actualSpecialZodiac} {item.actualColor} {item.actualSize}{item.actualParity}</div></div>)}</div>}
             </div>
 
-            <div className="rounded-3xl bg-slate-900 border border-slate-800 p-5 shadow-2xl">
+            <div className="hidden md:block rounded-3xl bg-slate-900/80 border border-slate-800 p-5 shadow-2xl">
               <h2 className="text-xl font-semibold mb-4">当前自动训练权重</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5"><RatingRows title="平特一肖" models={PING_MODELS} ratings={trained.pingRatings} /><RatingRows title="波色" models={CLASS_MODELS} ratings={trained.classRatings.color} /><RatingRows title="大小" models={CLASS_MODELS} ratings={trained.classRatings.size} /><RatingRows title="单双" models={CLASS_MODELS} ratings={trained.classRatings.parity} /></div>
             </div>
