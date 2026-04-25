@@ -405,115 +405,223 @@ export default function ZodiacPredictionApp() {
   useEffect(() => {
     if (!autoRefresh) return;
     const timer = setInterval(() => syncLatest30(true), POLL_MS);
-    return () => clearInterval(timer);
-  }, [autoRefresh]);
-
-  async function syncLatest30(silent = false) {
-    if (isSyncing) return;
-    setIsSyncing(true);
-    if (!silent) setStatus("正在同步最新30期...");
-    try {
-      const rows = await fetchLatest30();
-      if (!rows.length) throw new Error("没有拿到最新30期");
-      setRecords((old) => uniqRows([...old, ...rows]));
-      setStatus(`已同步最新30期，最新期号：${rows[0].expect}`);
-      setLastCheck(new Date().toLocaleTimeString());
-    } catch (err) {
-      if (!silent) setStatus(`同步失败：${err.message}。当前使用本地已保存数据。`);
-    } finally {
-      setIsSyncing(false);
-    }
-  }
-  function importRows() {
-    const rows = parseRows(importText);
-    if (!rows.length) { setStatus("没有识别到有效数据"); return; }
-    setRecords((old) => uniqRows([...old, ...rows]));
-    setStatus(`成功导入 ${rows.length} 条；预测已按最新30期刷新`);
-  }
-  function resetLocal() {
-    localStorage.removeItem("zodiac_open_ready_records_v1");
-    setRecords(uniqRows(FALLBACK_ROWS.map(normalizeRecord)));
-    setStatus("已重置本地数据，正在重新同步最新30期...");
-    syncLatest30(false);
-  }
-  function handleImage(file) { if (!file) return; setStatus("图片已接收；当前预览环境OCR不稳定，建议把图发给我转JSON，或用系统文字识别后粘贴文本。"); }
-
-  return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#1e293b_0,#020617_42%,#020617_100%)] text-slate-100 p-3 md:p-8 pb-24">
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
-        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-slate-800/80 px-3 py-1 text-xs text-slate-300 mb-2">🚀 打开即用 · 最新30期</div>
-            <h1 className="text-2xl md:text-5xl font-bold tracking-tight leading-tight">平特一肖预测</h1>
-            <p className="mt-2 text-sm md:text-base text-slate-400 max-w-3xl">自动同步最新30期，预测平特一肖、杀一头、杀4肖、波色、大小、单双。</p>
+    return (
+    <div className="min-h-screen bg-[#070A14] text-slate-100 pb-24">
+      <div className="mx-auto max-w-md px-4 pt-[env(safe-area-inset-top)]">
+        {/* iOS 顶部栏 */}
+        <div className="sticky top-0 z-20 -mx-4 bg-[#070A14]/85 px-4 pt-3 pb-3 backdrop-blur-xl border-b border-white/5">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[11px] text-slate-400">最新30期 · 打开即用</div>
+              <div className="text-xl font-black tracking-tight">平特一肖预测</div>
+            </div>
+            <button
+              onClick={() => syncLatest30(false)}
+              className="rounded-full bg-white text-slate-950 px-4 py-2 text-sm font-bold active:scale-95 transition"
+            >
+              同步
+            </button>
           </div>
-          <div className="grid grid-cols-3 gap-2 md:gap-3 text-center">
-            <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-3 md:p-4"><div className="text-xl md:text-2xl font-bold">{records.length}</div><div className="text-[11px] md:text-xs text-slate-400 mt-1">累计期数</div></div>
-            <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-3 md:p-4"><div className="text-xl md:text-2xl font-bold">{recent30.length}</div><div className="text-[11px] md:text-xs text-slate-400 mt-1">最新30期</div></div>
-            <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-3 md:p-4"><div className="text-xl md:text-2xl font-bold">{autoRefresh ? "开" : "关"}</div><div className="text-[11px] md:text-xs text-slate-400 mt-1">自动更新</div></div>
-          </div>
-        </header>
+        </div>
 
-        <main className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
-          <section className="lg:col-span-2 space-y-4 md:space-y-6 order-2 lg:order-1">
-            <div className="rounded-[1.75rem] bg-slate-900/85 border border-slate-800 p-4 md:p-5 shadow-2xl backdrop-blur space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-lg md:text-xl font-semibold">数据同步</h2>
-                <span className="text-xs text-slate-500">{lastCheck || "初始化"}</span>
+        <div className="space-y-4 pt-4">
+          {/* 状态胶囊 */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="rounded-2xl bg-white/[0.06] border border-white/10 p-3 text-center shadow-lg shadow-black/10">
+              <div className="text-xl font-black">{records.length}</div>
+              <div className="mt-1 text-[11px] text-slate-400">累计期数</div>
+            </div>
+            <div className="rounded-2xl bg-white/[0.06] border border-white/10 p-3 text-center shadow-lg shadow-black/10">
+              <div className="text-xl font-black">{recent30.length}</div>
+              <div className="mt-1 text-[11px] text-slate-400">最新30期</div>
+            </div>
+            <div className="rounded-2xl bg-white/[0.06] border border-white/10 p-3 text-center shadow-lg shadow-black/10">
+              <div className="text-xl font-black">{autoRefresh ? "开" : "关"}</div>
+              <div className="mt-1 text-[11px] text-slate-400">自动更新</div>
+            </div>
+          </div>
+
+          {/* 主预测卡 */}
+          <section className="relative overflow-hidden rounded-[2rem] border border-indigo-400/20 bg-gradient-to-br from-indigo-500/30 via-slate-900 to-slate-950 p-5 shadow-2xl shadow-indigo-950/40">
+            <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-indigo-400/20 blur-3xl" />
+            <div className="relative flex items-start justify-between gap-3">
+              <div>
+                <div className="text-xs text-indigo-100/80">下一期预测</div>
+                <div className="mt-1 text-[11px] text-slate-400">预测 {prediction.expect || "-"} · 基于 {prediction.basedOn || "-"}</div>
               </div>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImage(e.target.files && e.target.files[0])} />
-              <div className="grid grid-cols-2 gap-2 md:gap-3">
-                <button onClick={() => syncLatest30(false)} className="rounded-2xl bg-indigo-600 hover:bg-indigo-500 px-3 py-3 text-sm font-medium transition">🔄 同步30期</button>
-                <button onClick={resetLocal} className="rounded-2xl bg-slate-800 hover:bg-slate-700 px-3 py-3 text-sm font-medium transition">♻️ 重置</button>
-                <button onClick={() => fileRef.current && fileRef.current.click()} className="rounded-2xl bg-slate-800 hover:bg-slate-700 px-3 py-3 text-sm font-medium transition">📷 上传</button>
-                <button onClick={importRows} className="rounded-2xl bg-emerald-600 hover:bg-emerald-500 px-3 py-3 text-sm font-medium transition">导入文本</button>
+              <span className="rounded-full bg-black/25 px-3 py-1 text-[11px] text-slate-300 border border-white/10">
+                {ping.confidence.level}信心
+              </span>
+            </div>
+
+            <div className="relative mt-6 text-center">
+              <div className="text-xs text-slate-400">平特一肖</div>
+              <div className="mt-1 text-[6.5rem] leading-none font-black tracking-tighter drop-shadow-xl">
+                {ping.pick.label}
               </div>
-              <label className="flex items-center justify-between rounded-2xl bg-slate-950/90 border border-slate-800 p-4">
-                <div><div className="text-sm font-medium">自动更新</div><div className="text-xs text-slate-500 mt-1">页面打开时每30秒检查一次</div></div>
+              <div className="mt-2 text-xs text-slate-300">分差：{ping.confidence.edge}</div>
+            </div>
+          </section>
+
+          {/* 快速结果 */}
+          <section className="grid grid-cols-2 gap-3">
+            <div className="rounded-[1.5rem] bg-white/[0.06] border border-white/10 p-4 shadow-lg shadow-black/10">
+              <div className="text-xs text-slate-400">杀一头</div>
+              <div className="mt-3 flex items-end justify-between">
+                <div className="text-4xl font-black text-orange-200">{prediction.killHead}</div>
+                <div className="text-[11px] text-slate-500">排除</div>
+              </div>
+            </div>
+
+            <div className="rounded-[1.5rem] bg-white/[0.06] border border-white/10 p-4 shadow-lg shadow-black/10">
+              <div className="text-xs text-slate-400">波色选2</div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {color.list.slice(0, 2).map((item) => (
+                  <span key={item.label} className="rounded-full bg-slate-800/90 px-3 py-1.5 text-sm font-bold border border-white/10">
+                    {item.label}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-2 text-[11px] text-slate-500">{color.confidence.level}信心</div>
+            </div>
+
+            <div className="rounded-[1.5rem] bg-white/[0.06] border border-white/10 p-4 shadow-lg shadow-black/10">
+              <div className="text-xs text-slate-400">大小</div>
+              <div className="mt-2 text-5xl font-black">{size.pick.label}</div>
+              <div className="mt-1 text-[11px] text-slate-500">{size.confidence.level}信心</div>
+            </div>
+
+            <div className="rounded-[1.5rem] bg-white/[0.06] border border-white/10 p-4 shadow-lg shadow-black/10">
+              <div className="text-xs text-slate-400">单双</div>
+              <div className="mt-2 text-5xl font-black">{parity.pick.label}</div>
+              <div className="mt-1 text-[11px] text-slate-500">{parity.confidence.level}信心</div>
+            </div>
+          </section>
+
+          {/* 杀4肖 */}
+          <section className="rounded-[1.5rem] bg-rose-950/25 border border-rose-500/20 p-4 shadow-lg shadow-black/10">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-bold">杀4肖</div>
+              <div className="text-[11px] text-rose-200/70">特码生肖排除</div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(prediction.killZodiacs || []).map((z) => (
+                <span key={z} className="rounded-2xl bg-rose-950/80 border border-rose-700/60 px-4 py-2 text-xl font-black text-rose-100">
+                  {z}
+                </span>
+              ))}
+            </div>
+          </section>
+
+          {/* 近10期记录 */}
+          <section className="rounded-[1.75rem] bg-white/[0.06] border border-white/10 p-4 shadow-xl shadow-black/10">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg font-black">近10期记录</h2>
+              <span className="text-[11px] text-slate-500">正确率</span>
+            </div>
+
+            <div className="mt-3 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 whitespace-nowrap">
+              <span className="rounded-full bg-slate-800 px-3 py-1 text-xs">肖 {stats.pingRate}%</span>
+              <span className="rounded-full bg-slate-800 px-3 py-1 text-xs">杀头 {stats.killHeadRate}%</span>
+              <span className="rounded-full bg-slate-800 px-3 py-1 text-xs">杀4肖 {stats.killRate}%</span>
+              <span className="rounded-full bg-slate-800 px-3 py-1 text-xs">波 {stats.colorRate}%</span>
+              <span className="rounded-full bg-slate-800 px-3 py-1 text-xs">大小 {stats.sizeRate}%</span>
+              <span className="rounded-full bg-slate-800 px-3 py-1 text-xs">单双 {stats.parityRate}%</span>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {history.length === 0 ? (
+                <div className="rounded-2xl bg-black/20 p-4 text-sm text-slate-500">数据不足，暂时无法生成记录。</div>
+              ) : (
+                history.map((item) => (
+                  <div key={item.expect} className="rounded-2xl bg-slate-950/70 border border-white/10 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-sm font-bold">第 {item.expect} 期</div>
+                      <div className="text-[11px] text-slate-500">基于 {item.basedOn}</div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs leading-5">
+                      <div>一肖：{item.ping} {item.pingHit ? "✅" : "❌"}</div>
+                      <div>杀头：{item.killHead} {item.killHeadHit ? "✅" : "❌"}</div>
+                      <div className="col-span-2">杀4肖：{(item.killZodiacs || []).join("/")} {item.killHit ? "✅" : "❌"}</div>
+                      <div>波色：{(item.colors || []).join("/")} {item.colorHit ? "✅" : "❌"}</div>
+                      <div>大小：{item.size} {item.sizeHit ? "✅" : "❌"}</div>
+                      <div>单双：{item.parity} {item.parityHit ? "✅" : "❌"}</div>
+                    </div>
+                    <div className="mt-2 text-[11px] text-slate-500">
+                      实际特码：{item.actualNum} {item.actualSpecialZodiac} {item.actualColor} {item.actualSize}{item.actualParity}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+
+          {/* 折叠功能区 */}
+          <details className="rounded-[1.5rem] bg-white/[0.06] border border-white/10 p-4 shadow-lg shadow-black/10">
+            <summary className="cursor-pointer text-base font-bold">数据同步与导入</summary>
+            <div className="mt-4 space-y-4">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleImage(e.target.files && e.target.files[0])}
+              />
+
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={() => syncLatest30(false)} className="rounded-2xl bg-indigo-600 px-3 py-3 text-sm font-bold active:scale-95 transition">🔄 同步30期</button>
+                <button onClick={resetLocal} className="rounded-2xl bg-slate-800 px-3 py-3 text-sm font-bold active:scale-95 transition">♻️ 重置</button>
+                <button onClick={() => fileRef.current && fileRef.current.click()} className="rounded-2xl bg-emerald-600 px-3 py-3 text-sm font-bold active:scale-95 transition">📷 上传</button>
+                <button onClick={importRows} className="rounded-2xl bg-slate-800 px-3 py-3 text-sm font-bold active:scale-95 transition">导入文本</button>
+              </div>
+
+              <label className="flex items-center justify-between rounded-2xl bg-slate-950/70 border border-white/10 p-4">
+                <div>
+                  <div className="text-sm font-bold">自动更新</div>
+                  <div className="mt-1 text-xs text-slate-500">页面打开时每30秒检查一次</div>
+                </div>
                 <input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} className="h-5 w-5" />
               </label>
-              <textarea value={importText} onChange={(e) => setImportText(e.target.value)} placeholder="粘贴JSON或开奖记录文本" className="w-full h-28 md:h-40 rounded-2xl bg-slate-950 border border-slate-800 p-4 outline-none focus:ring-2 focus:ring-slate-500 resize-none text-sm text-slate-100 placeholder:text-slate-600" />
-              <div className="rounded-2xl bg-slate-950/90 border border-slate-800 p-3 text-xs md:text-sm text-slate-400">{status}</div>
-            </div>
 
-            <div className="rounded-[1.75rem] bg-slate-900/85 border border-slate-800 p-4 md:p-5 shadow-2xl backdrop-blur">
-              <h2 className="text-lg md:text-xl font-semibold mb-4">最新使用数据</h2>
-              <div className="space-y-2 max-h-80 md:max-h-96 overflow-auto">
-                {recent30.slice(0, 10).map((row) => <div key={row.expect} className="rounded-2xl bg-slate-950/90 border border-slate-800 p-3 text-sm"><div className="flex justify-between gap-2"><span className="font-semibold">第 {row.expect} 期</span><span className="text-slate-500 text-xs">{row.openTime}</span></div><div className="mt-2 text-slate-300 text-xs md:text-sm">{row.zodiacList.join(" ")}</div><div className="mt-1 text-slate-600 text-xs">{row.codeList.join(" ")}</div></div>)}
+              <textarea
+                value={importText}
+                onChange={(e) => setImportText(e.target.value)}
+                placeholder="粘贴JSON或开奖记录文本"
+                className="w-full h-28 rounded-2xl bg-slate-950 border border-white/10 p-4 outline-none focus:ring-2 focus:ring-indigo-500 resize-none text-sm text-slate-100 placeholder:text-slate-600"
+              />
+
+              <div className="rounded-2xl bg-slate-950/70 border border-white/10 p-3 text-xs text-slate-400">
+                {status} {lastCheck ? `｜${lastCheck}` : ""}
               </div>
             </div>
-          </section>
+          </details>
 
-          <section className="lg:col-span-3 space-y-4 md:space-y-6 order-1 lg:order-2">
-            <div className="rounded-[1.75rem] bg-slate-900/85 border border-slate-800 p-4 md:p-5 shadow-2xl backdrop-blur">
-              <div className="flex items-center justify-between gap-3 mb-4">
-                <h2 className="text-xl md:text-2xl font-bold">🔥 下一期</h2>
-                <div className="flex gap-2 overflow-x-auto whitespace-nowrap"><Badge>预测 {prediction.expect || "-"}</Badge><Badge>基于 {prediction.basedOn || "-"}</Badge></div>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
-                <div className="col-span-2 rounded-[1.5rem] bg-gradient-to-br from-indigo-500/25 to-slate-950 border border-indigo-500/30 p-5 text-center"><div className="text-xs text-indigo-200">平特一肖</div><div className="text-7xl font-black mt-2 leading-none">{ping.pick.label}</div><div className="mt-3 text-xs text-slate-300">信心：{ping.confidence.level}｜分差：{ping.confidence.edge}</div></div>
-                <div className="rounded-[1.5rem] bg-slate-950/90 border border-orange-900/60 p-4 text-center"><div className="text-xs text-slate-500">杀一头</div><div className="mt-3 text-4xl font-black text-orange-100">{prediction.killHead}</div><div className="mt-2 text-[11px] text-slate-500">排除参考</div></div>
-                <div className="rounded-[1.5rem] bg-slate-950/90 border border-rose-900/60 p-4 text-center"><div className="text-xs text-slate-500">杀4肖</div><div className="mt-3 flex justify-center gap-1.5 flex-wrap">{prediction.killZodiacs.map((z) => <span key={z} className="rounded-xl bg-rose-950/70 border border-rose-800 px-2.5 py-1.5 text-xl font-bold text-rose-100">{z}</span>)}</div></div>
-                <div className="rounded-[1.5rem] bg-slate-950/90 border border-slate-800 p-4 text-center"><div className="text-xs text-slate-500">波色选2</div><div className="mt-3 flex justify-center gap-1.5 flex-wrap">{color.list.slice(0, 2).map((item) => <span key={item.label} className="rounded-xl bg-slate-800 border border-slate-700 px-2.5 py-1.5 text-lg font-bold">{item.label}</span>)}</div><div className="mt-2 text-[11px] text-slate-500">{color.confidence.level}信心</div></div>
-                <div className="grid grid-cols-2 gap-3 col-span-2 md:col-span-1">
-                  <div className="rounded-[1.5rem] bg-slate-950/90 border border-slate-800 p-4 text-center"><div className="text-xs text-slate-500">大小</div><div className="text-4xl font-black mt-2">{size.pick.label}</div></div>
-                  <div className="rounded-[1.5rem] bg-slate-950/90 border border-slate-800 p-4 text-center"><div className="text-xs text-slate-500">单双</div><div className="text-4xl font-black mt-2">{parity.pick.label}</div></div>
+          <details className="rounded-[1.5rem] bg-white/[0.06] border border-white/10 p-4 shadow-lg shadow-black/10">
+            <summary className="cursor-pointer text-base font-bold">最新使用数据</summary>
+            <div className="mt-4 space-y-2 max-h-80 overflow-auto">
+              {recent30.slice(0, 10).map((row) => (
+                <div key={row.expect} className="rounded-2xl bg-slate-950/70 border border-white/10 p-3 text-sm">
+                  <div className="flex justify-between gap-2">
+                    <span className="font-bold">第 {row.expect} 期</span>
+                    <span className="text-[11px] text-slate-500">{row.openTime}</span>
+                  </div>
+                  <div className="mt-2 text-slate-300 text-xs">{row.zodiacList.join(" ")}</div>
+                  <div className="mt-1 text-slate-600 text-xs">{row.codeList.join(" ")}</div>
                 </div>
-              </div>
-              {ping.confidence.level === "低" || size.confidence.level === "低" || parity.confidence.level === "低" ? <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs md:text-sm text-amber-200">有项目处于低信心，只能轻参考。</div> : null}
+              ))}
             </div>
+          </details>
 
-            <div className="rounded-[1.75rem] bg-slate-900/85 border border-slate-800 p-4 md:p-5 shadow-2xl backdrop-blur">
-              <div className="flex flex-col gap-3 mb-4"><h2 className="text-xl md:text-2xl font-bold">📋 近10期记录</h2><div className="flex gap-2 overflow-x-auto pb-1 whitespace-nowrap"><Badge>肖 {stats.pingRate}%</Badge><Badge>杀头 {stats.killHeadRate}%</Badge><Badge>杀4肖 {stats.killRate}%</Badge><Badge>波 {stats.colorRate}%</Badge><Badge>大小 {stats.sizeRate}%</Badge><Badge>单双 {stats.parityRate}%</Badge></div></div>
-              {history.length === 0 ? <div className="text-sm text-slate-500">数据不足，暂时无法生成近10期记录。</div> : <div className="space-y-3 max-h-96 overflow-auto">{history.map((item) => <div key={item.expect} className="rounded-2xl bg-slate-950/90 border border-slate-800 p-3 text-sm"><div className="flex justify-between gap-2 mb-2"><span className="font-semibold">第 {item.expect} 期</span><span className="text-slate-500 text-xs">基于 {item.basedOn}</span></div><div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-6"><div>一肖：{item.ping} {item.pingHit ? "✅" : "❌"}</div><div>杀一头：{item.killHead} {item.killHeadHit ? "✅" : "❌"}</div><div>杀4肖：{(item.killZodiacs || []).join("/")} {item.killHit ? "✅" : "❌"}</div><div>波色：{(item.colors || []).join("/")} {item.colorHit ? "✅" : "❌"}</div><div>大小：{item.size} {item.sizeHit ? "✅" : "❌"}</div><div>单双：{item.parity} {item.parityHit ? "✅" : "❌"}</div></div><div className="mt-2 text-xs text-slate-500">实际特码：{item.actualNum} {item.actualSpecialZodiac} {item.actualColor} {item.actualSize}{item.actualParity}</div></div>)}</div>}
+          <details className="rounded-[1.5rem] bg-white/[0.06] border border-white/10 p-4 shadow-lg shadow-black/10">
+            <summary className="cursor-pointer text-base font-bold">模型权重（高级）</summary>
+            <div className="mt-4 space-y-5">
+              <RatingRows title="平特一肖" models={PING_MODELS} ratings={trained.pingRatings} />
+              <RatingRows title="波色" models={CLASS_MODELS} ratings={trained.classRatings.color} />
+              <RatingRows title="大小" models={CLASS_MODELS} ratings={trained.classRatings.size} />
+              <RatingRows title="单双" models={CLASS_MODELS} ratings={trained.classRatings.parity} />
             </div>
-
-            <div className="hidden md:block rounded-3xl bg-slate-900/80 border border-slate-800 p-5 shadow-2xl">
-              <h2 className="text-xl font-semibold mb-4">当前自动训练权重</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5"><RatingRows title="平特一肖" models={PING_MODELS} ratings={trained.pingRatings} /><RatingRows title="波色" models={CLASS_MODELS} ratings={trained.classRatings.color} /><RatingRows title="大小" models={CLASS_MODELS} ratings={trained.classRatings.size} /><RatingRows title="单双" models={CLASS_MODELS} ratings={trained.classRatings.parity} /></div>
-            </div>
-          </section>
-        </main>
+          </details>
+        </div>
       </div>
     </div>
   );
